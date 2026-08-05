@@ -137,6 +137,26 @@ horarios de forma clara y considerar un aviso general para los visitantes.
    Página de bienvenida de Astro visible en el navegador.
 5. **Ciclo de trabajo verificado:** editar un `.astro` → guardar → el navegador
    recarga solo (hot reload del dev server).
+6. **Ruteo por archivos:** cada archivo en `src/pages/` es una ruta. Se creó
+   `src/pages/museos.astro` (`/museos`) como práctica junto al `index.astro`
+   existente (`/`).
+7. **Layout compartido:** `src/layouts/Layout.astro` centraliza el `<html>`/
+   `<head>` común (favicon, viewport, generator) y expone un `<slot />` para
+   que cada página inyecte su contenido. `index.astro` y `museos.astro` ya lo
+   usan.
+8. **Content collection de museos:** `src/content.config.ts` define la
+   colección `museos` con loader `glob` (lee `src/content/museos/**/*.md`) y
+   schema `zod` con 7 campos: `nombre`, `categoria` (enum museo/gastronomia/
+   alojamiento), `descripcion`, `horario`, `rating`, `lat`, `lng`, y `foto`
+   (opcional). Nota técnica: en Astro 7 el helper `z` se importa desde
+   `astro/zod`, no desde `astro:content` (ese re-export quedó deprecado).
+9. **Datos de los 3 museos cargados** en `src/content/museos/` (`belgrano.md`,
+   `del-campo.md`, `la-pilarcita.md`) con nombre, descripción y rating reales.
+   **Pendiente de revisión antes de usar en producción:**
+   - `lat`/`lng` de los 3 archivos son un placeholder aproximado del centro
+     del pueblo, no la ubicación real de cada museo.
+   - `horario` de "Museo del Campo" quedó como texto `"PENDIENTE: confirmar
+     horario"` (no estaba en la documentación previa).
 
 ### Comandos aprendidos
 
@@ -151,10 +171,14 @@ horarios de forma clara y considerar un aviso general para los visitantes.
 
 ## Próximos pasos
 
-- [ ] Recorrer y afianzar la estructura de carpetas.
-- [ ] Definir la estructura de páginas y armar la primera propia.
-- [ ] Modelar los datos de un lugar (esquema) y cargar los 3 museos.
-- [ ] Home con el mapa Leaflet (primera isla).
+- [x] Recorrer y afianzar la estructura de carpetas.
+- [x] Definir la estructura de páginas y armar la primera propia.
+- [x] Modelar los datos de un lugar (esquema) y cargar los 3 museos
+      (falta corregir coordenadas reales y el horario pendiente, ver recap).
+- [ ] Fichas de detalle debajo del mapa, leyendo la colección `museos` con
+      `getCollection` (HTML estático, sin mapa todavía).
+- [ ] Home con el mapa Leaflet (primera isla) mostrando los puntos de la
+      colección `museos`.
 - [ ] Páginas por categoría y de detalle.
 - [ ] SEO (meta tags, Open Graph, sitemap, schema.org).
 - [ ] PDF descargable.

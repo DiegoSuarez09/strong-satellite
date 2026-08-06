@@ -1,7 +1,210 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { CATEGORIAS } from '../lib/categorias';
+import TarjetaLugar from '../components/TarjetaLugar.astro';
+import 'leaflet/dist/leaflet.css';
+
+const lugares = await getCollection('museos');
+
+const porCategoria = Object.fromEntries(
+	CATEGORIAS.map(({ id }) => [id, lugares.filter((lugar) => lugar.data.categoria === id)])
+);
+
+// Evita cerrar el <script> de abajo si algún texto trajera "</".
+const datosLugares = JSON.stringify(porCategoria).replace(/</g, '\\u003c');
 ---
 
-<Layout>
-<h1> Index</h1>
+<Layout title="Inicio">
+	<h1>Concepción del Yaguareté Corá</h1>
+	<p>
+		Museos, gastronomía y alojamientos de Concepción del Yaguareté Corá,
+		Corrientes, en un solo lugar.
+	</p>
+
+	<section class="explorador">
+		<aside class="filtros">
+			{CATEGORIAS.map((cat, i) => (
+				<button
+					type="button"
+					class="filtro"
+					data-categoria={cat.id}
+					aria-pressed={i === 0 ? 'true' : 'false'}
+				>
+					<span aria-hidden="true">{cat.icono}</span>
+					{cat.label}
+				</button>
+			))}
+		</aside>
+
+		<div class="panel">
+			<div id="mapa"></div>
+
+			<div class="listas">
+				{CATEGORIAS.map((cat, i) => (
+					<ul class="lugares" data-lista={cat.id} hidden={i !== 0}>
+						{porCategoria[cat.id].length === 0 ? (
+							<li class="vacio">Todavía no hay lugares cargados en esta categoría.</li>
+						) : (
+							porCategoria[cat.id].map((lugar) => <TarjetaLugar lugar={lugar} />)
+						)}
+					</ul>
+				))}
+			</div>
+		</div>
+	</section>
 </Layout>
+
+<script type="application/json" id="datos-lugares" set:html={datosLugares} />
+
+<script>
+	import L from 'leaflet';
+	import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png?url';
+	import iconUrl from 'leaflet/dist/images/marker-icon.png?url';
+	import shadowUrl from 'leaflet/dist/images/marker-shadow.png?url';
+
+	// Leaflet's Icon.Default siempre antepone una ruta auto-detectada a
+	// options.iconUrl, incluso si ya es una URL completa. Hay que borrar ese
+	// método para que use las URLs que le pasamos tal cual.
+	delete L.Icon.Default.prototype._getIconUrl;
+	L.Icon.Default.mergeOptions({ iconRetinaUrl, iconUrl, shadowUrl });
+
+	const datosPorCategoria = JSON.parse(
+		document.getElementById('datos-lugares').textContent
+	);
+
+	function popupLugar(lugar) {
+		const { nombre, rating, resenas, horario } = lugar.data;
+		const reseñasTexto = resenas ? ` (${resenas})` : '';
+		return `
+			<div class="popup-lugar">
+				<strong>${nombre}</strong>
+				<span>${rating} ★${reseñasTexto}</span>
+				<span>🕐 ${horario}</span>
+			</div>
+		`;
+	}
+
+	const mapa = L.map('mapa').setView([-28.3916, -57.8845], 16);
+
+	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		attribution:
+			'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+		maxZoom: 19,
+	}).addTo(mapa);
+
+	const capasPorCategoria = Object.fromEntries(
+		Object.entries(datosPorCategoria).map(([categoria, lugares]) => [
+			categoria,
+			L.layerGroup(
+				lugares.map((lugar) =>
+					L.marker([lugar.data.lat, lugar.data.lng]).bindPopup(popupLugar(lugar))
+				)
+			),
+		])
+	);
+
+	let categoriaActiva = 'museo';
+	capasPorCategoria[categoriaActiva]?.addTo(mapa);
+
+	const botones = document.querySelectorAll('.filtro');
+	const listas = document.querySelectorAll('.lugares');
+
+	botones.forEach((boton) => {
+		boton.addEventListener('click', () => {
+			const categoria = boton.dataset.categoria;
+			if (categoria === categoriaActiva) return;
+
+			capasPorCategoria[categoriaActiva]?.remove();
+			capasPorCategoria[categoria]?.addTo(mapa);
+			categoriaActiva = categoria;
+
+			botones.forEach((b) =>
+				b.setAttribute('aria-pressed', b === boton ? 'true' : 'false')
+			);
+			listas.forEach((lista) => {
+				lista.hidden = lista.dataset.lista !== categoria;
+			});
+		});
+	});
+</script>
+
+<style is:global>
+	.popup-lugar {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+		font-size: 0.85rem;
+	}
+</style>
+
+<style>
+	.explorador {
+		display: grid;
+		grid-template-columns: 180px 1fr;
+		gap: 1.5rem;
+		margin-top: 1.5rem;
+	}
+
+	.filtros {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.filtro {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.6rem 0.8rem;
+		border: 1px solid var(--verde);
+		background: white;
+		color: var(--verde-oscuro);
+		border-radius: 0.4rem;
+		font-size: 0.95rem;
+		text-align: left;
+		cursor: pointer;
+	}
+
+	.filtro[aria-pressed='true'] {
+		background: var(--verde);
+		color: white;
+	}
+
+	.panel {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		min-width: 0;
+	}
+
+	#mapa {
+		height: 420px;
+		border-radius: 0.5rem;
+		overflow: hidden;
+	}
+
+	.lugares {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		gap: 1.25rem;
+	}
+
+	.vacio {
+		color: var(--gris);
+	}
+
+	@media (max-width: 640px) {
+		.explorador {
+			grid-template-columns: 1fr;
+		}
+
+		.filtros {
+			flex-direction: row;
+			flex-wrap: wrap;
+		}
+	}
+</style>

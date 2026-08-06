@@ -146,17 +146,35 @@ horarios de forma clara y considerar un aviso general para los visitantes.
    usan.
 8. **Content collection de museos:** `src/content.config.ts` define la
    colección `museos` con loader `glob` (lee `src/content/museos/**/*.md`) y
-   schema `zod` con 7 campos: `nombre`, `categoria` (enum museo/gastronomia/
-   alojamiento), `descripcion`, `horario`, `rating`, `lat`, `lng`, y `foto`
-   (opcional). Nota técnica: en Astro 7 el helper `z` se importa desde
-   `astro/zod`, no desde `astro:content` (ese re-export quedó deprecado).
-9. **Datos de los 3 museos cargados** en `src/content/museos/` (`belgrano.md`,
-   `del-campo.md`, `la-pilarcita.md`) con nombre, descripción y rating reales.
-   **Pendiente de revisión antes de usar en producción:**
-   - `lat`/`lng` de los 3 archivos son un placeholder aproximado del centro
-     del pueblo, no la ubicación real de cada museo.
-   - `horario` de "Museo del Campo" quedó como texto `"PENDIENTE: confirmar
-     horario"` (no estaba en la documentación previa).
+   schema `zod` con 10 campos: `nombre`, `categoria` (enum museo/gastronomia/
+   alojamiento), `descripcion`, `horario`, `rating`, `lat`, `lng`, `foto`
+   (opcional), `direccion` (opcional), `entrada` (opcional) y `fuente` (URL
+   opcional, para citar de dónde sale el dato). Nota técnica: en Astro 7 el
+   helper `z` se importa desde `astro/zod`, no desde `astro:content` (ese
+   re-export quedó deprecado).
+9. **Datos de los 3 museos** en `src/content/museos/` (`belgrano.md`,
+   `del-campo.md`, `la-pilarcita.md`), investigados en fuentes oficiales
+   (Instituto de Cultura de Corrientes, Ministerio de Turismo de Corrientes) el
+   2026-08-05: descripción, horario y (para Belgrano) dirección real, con link
+   a la fuente en cada archivo.
+   - **Coordenadas:** las originales apuntaban ~15 km al sur del pueblo real
+     (placeholder erróneo). Se corrigieron una vez con Nominatim/OSM (zona
+     aproximada) y después se reemplazaron por coordenadas de precisión GPS
+     (7 decimales) que trajo el usuario desde un archivo con datos de Google
+     Places — verificadas en el mapa, caen justo sobre el pueblo.
+   - **Fotos:** se linkean en vivo a URLs de Google Places
+     (`lh3.googleusercontent.com/place-photos/...`), verificadas manualmente
+     (devuelven JPEG real). Decisión consciente del dueño: no descargarlas al
+     repo. Riesgo aceptado: si Google invalida esas URLs en el futuro, la
+     ficha se queda sin foto (cae al ícono de categoría, no rompe la página) y
+     hay que reemplazarlas.
+   - **Horarios con fuentes en conflicto:** para "Museo del Campo" y "Museo de
+     La Pilarcita", el archivo con datos de Google Places trae horarios
+     ligeramente distintos a los de la fuente oficial (Instituto de Cultura).
+     Se priorizó la fuente oficial citada en `fuente`, excepto en "Museo del
+     Campo" (que no tenía horario oficial) donde se usó el dato aproximado de
+     Google con una aclaración de que no está confirmado. Convendría llamar al
+     Instituto de Cultura (0379 423-0640 / 431-8800) para confirmar los tres.
 
 ### Comandos aprendidos
 
@@ -165,7 +183,10 @@ horarios de forma clara y considerar un aviso general para los visitantes.
 - `npm install` — instalar/verificar las dependencias del proyecto.
 - `npm run dev` — levantar el servidor de desarrollo (se frena con `q` + Enter
   o `Ctrl+C`).
-- `npm run build` — (pendiente de usar) compilar el sitio final para producción.
+- `npm run build` — compilar el sitio final para producción (a `dist/`).
+- `npm run preview` — servir localmente el resultado de `npm run build`, para
+  probar el sitio tal como queda publicado (con el `base` de GitHub Pages
+  incluido), antes de subirlo.
 
 ---
 
@@ -173,15 +194,26 @@ horarios de forma clara y considerar un aviso general para los visitantes.
 
 - [x] Recorrer y afianzar la estructura de carpetas.
 - [x] Definir la estructura de páginas y armar la primera propia.
-- [x] Modelar los datos de un lugar (esquema) y cargar los 3 museos
-      (falta corregir coordenadas reales y el horario pendiente, ver recap).
-- [ ] Fichas de detalle debajo del mapa, leyendo la colección `museos` con
-      `getCollection` (HTML estático, sin mapa todavía).
-- [ ] Home con el mapa Leaflet (primera isla) mostrando los puntos de la
-      colección `museos`.
-- [ ] Páginas por categoría y de detalle.
+- [x] Modelar los datos de un lugar (esquema) y cargar los 3 museos, con datos
+      investigados en fuentes oficiales (falta horario de Museo del Campo,
+      ver recap).
+- [x] Fichas de detalle debajo del mapa, leyendo la colección `museos` con
+      `getCollection`.
+- [x] Home con el mapa Leaflet (primera isla) mostrando los puntos de la
+      colección `museos`, con filtro por categoría (botones a la izquierda).
+- [x] Página de detalle por lugar (`/museos/[slug]`, con `getStaticPaths`),
+      con botón a Google Maps.
+- [ ] Páginas propias por categoría (hoy el filtro por categoría vive como
+      botones en la home, no como URLs separadas tipo `/gastronomia`).
 - [ ] SEO (meta tags, Open Graph, sitemap, schema.org).
 - [ ] PDF descargable.
-- [ ] Configurar `astro.config.mjs` para GitHub Pages (`site` y `base`) y el
-      workflow de GitHub Actions.
+- [x] Configurar `astro.config.mjs` para GitHub Pages (`site` y `base`) y el
+      workflow de GitHub Actions (`.github/workflows/deploy.yml`, usa
+      `withastro/action`). Sitio publicado en
+      `https://diegosuarez09.github.io/strong-satellite/`.
+      **Nota técnica:** como el sitio no vive en la raíz del dominio, todos
+      los links internos (nav, tarjetas, botón "volver") se arman con el
+      helper `ruta()` de `src/lib/rutas.ts`, que antepone
+      `import.meta.env.BASE_URL`. Un link nuevo escrito como `href="/museos"`
+      a mano se rompe en producción — siempre usar `ruta('/museos')`.
 - [ ] Pulido: responsive, accesibilidad, Lighthouse, README con capturas.

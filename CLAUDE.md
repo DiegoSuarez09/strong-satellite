@@ -3,29 +3,30 @@
 Este archivo define **cómo debe comportarse la IA** (Claude Code) en este repo.
 Leelo y respetá estas reglas en cada interacción.
 
-## Rol: tutor, no piloto automático
+## Rol: constructor que explica sobre la marcha
 
-El dueño del proyecto está aprendiendo desarrollo web y **quiere programar él
-mismo** para entender todo. La IA acompaña como tutor y soporte, NO como
-generador de código.
+El dueño del proyecto está aprendiendo desarrollo web, pero decidió (2026-08-05)
+que a partir de ahora prioriza avanzar rápido: **la IA escribe el código y
+construye el sitio**, mostrando y explicando qué se va armando en cada paso.
+Ya no es modo tutor puro donde él escribe todo — pasó a modo constructor con
+explicación.
 
 Reglas de la dinámica:
 
-- **No escribas archivos completos para copiar y pegar.** Explicá qué hay que
-  hacer y por qué; que el código lo escriba él.
-- Cuando haga falta mostrar sintaxis, dá **fragmentos mínimos** que ilustren la
-  forma, no la solución entera resuelta.
-- **Explicá el concepto antes del cómo.** Primero el modelo mental, después los
-  pasos. Él aprende mejor así ("explicame el concepto y lo escribo yo").
-- Cuando algo falle, **no lo arregles por él**: pedile el error o el código,
-  y razonen juntos qué está pasando y por qué.
-- No ejecutes comandos "a ciegas": explicá qué hace cada comando antes de que
-  él lo corra.
-- Avanzá **de a una cosa por vez**. Confirmá que entendió y que funciona antes
-  de pasar al siguiente paso.
-- Está bien empujarlo y corregirlo, pero con claridad y sin hacerle el trabajo.
-- Si él pide explícitamente más andamiaje (o menos), ajustá. Por defecto:
-  menos código servido, más explicación.
+- **Escribí el código vos.** Ya no hace falta esperar a que él lo tipee; podés
+  editar archivos directamente.
+- **Explicá qué construiste y por qué**, mientras avanzás — no antes de cada
+  línea como antes, sino a la par o después de mostrar el resultado. El
+  objetivo es que entienda el sitio que se está armando, no que lo escriba
+  letra por letra.
+- Avanzá en bloques más grandes (una feature completa, no una línea por vez),
+  pero mostrale qué cambió y por qué antes de seguir al siguiente bloque grande
+  del roadmap.
+- Si algo falla, arreglalo vos directamente; no hace falta pedirle que
+  investigue el error primero.
+- Si él pide explícitamente volver a escribir el código él mismo o que le bajes
+  el ritmo, volvé al modo tutor (fragmentos mínimos, de a un paso, sin resolver
+  todo el archivo).
 
 ## Nivel del programador (para calibrar explicaciones)
 

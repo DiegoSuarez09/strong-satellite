@@ -1,0 +1,185 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { etiquetaCategoria, iconoCategoria } from '../../lib/categorias';
+import { ruta } from '../../lib/rutas';
+
+export async function getStaticPaths() {
+	const lugares = await getCollection('museos');
+	return lugares.map((lugar) => ({
+		params: { slug: lugar.id },
+		props: { lugar },
+	}));
+}
+
+const { lugar } = Astro.props;
+const {
+	nombre,
+	categoria,
+	descripcion,
+	horario,
+	rating,
+	resenas,
+	lat,
+	lng,
+	direccion,
+	entrada,
+	foto,
+	fuente,
+} = lugar.data;
+
+const urlGoogleMaps = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+---
+
+<Layout title={nombre} description={descripcion}>
+	<a class="volver" href={ruta('/museos')}>← Volver a Museos</a>
+
+	<article class="detalle">
+		{foto ? (
+			<div class="portada portada-foto">
+				<img src={foto} alt={nombre} loading="eager" />
+				<span class="creditos-foto">Foto: Google</span>
+			</div>
+		) : (
+			<div class="portada" aria-hidden="true">{iconoCategoria(categoria)}</div>
+		)}
+
+		<div class="cuerpo">
+			<p class="categoria">{etiquetaCategoria(categoria)}</p>
+			<h1>{nombre}</h1>
+			<p class="descripcion">{descripcion}</p>
+
+			<dl>
+				{direccion && (
+					<>
+						<dt>Dirección</dt>
+						<dd>{direccion}</dd>
+					</>
+				)}
+				<dt>Horario</dt>
+				<dd>{horario}</dd>
+				{entrada && (
+					<>
+						<dt>Entrada</dt>
+						<dd>{entrada}</dd>
+					</>
+				)}
+				<dt>Rating</dt>
+				<dd>{rating} ★{resenas ? ` (${resenas} reseñas)` : ''}</dd>
+			</dl>
+
+			<a class="boton-mapa" href={urlGoogleMaps} target="_blank" rel="noopener noreferrer">
+				Abrir en Google Maps
+			</a>
+
+			{fuente && (
+				<p class="fuente">
+					Fuente: <a href={fuente} target="_blank" rel="noopener noreferrer">Instituto de Cultura de Corrientes</a>
+				</p>
+			)}
+		</div>
+	</article>
+</Layout>
+
+<style>
+	.volver {
+		display: inline-block;
+		margin-bottom: 1rem;
+		font-size: 0.9rem;
+	}
+
+	.detalle {
+		background: white;
+		border: 1px solid #e4ddcc;
+		border-radius: 0.5rem;
+		overflow: hidden;
+		max-width: 40rem;
+	}
+
+	.portada {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 220px;
+		font-size: 3.5rem;
+		background: linear-gradient(135deg, var(--verde), var(--verde-oscuro));
+		position: relative;
+	}
+
+	.portada-foto {
+		padding: 0;
+	}
+
+	.portada-foto img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.creditos-foto {
+		position: absolute;
+		bottom: 0.5rem;
+		right: 0.5rem;
+		background: rgba(0, 0, 0, 0.6);
+		color: white;
+		font-size: 0.7rem;
+		padding: 0.15rem 0.5rem;
+		border-radius: 0.25rem;
+	}
+
+	.cuerpo {
+		padding: 1.5rem;
+	}
+
+	.categoria {
+		margin: 0 0 0.25rem;
+		color: var(--tierra);
+		text-transform: uppercase;
+		font-size: 0.8rem;
+		letter-spacing: 0.05em;
+	}
+
+	.detalle h1 {
+		margin: 0 0 0.75rem;
+		color: var(--verde-oscuro);
+	}
+
+	.descripcion {
+		margin: 0 0 1rem;
+	}
+
+	dl {
+		margin: 0 0 1.5rem;
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 0.35rem 0.75rem;
+	}
+
+	dt {
+		color: var(--gris);
+	}
+
+	dd {
+		margin: 0;
+	}
+
+	.boton-mapa {
+		display: inline-block;
+		padding: 0.6rem 1rem;
+		background: var(--verde);
+		color: white;
+		text-decoration: none;
+		border-radius: 0.4rem;
+		font-size: 0.95rem;
+	}
+
+	.boton-mapa:hover {
+		background: var(--verde-oscuro);
+	}
+
+	.fuente {
+		margin: 1rem 0 0;
+		font-size: 0.8rem;
+		color: var(--gris);
+	}
+</style>

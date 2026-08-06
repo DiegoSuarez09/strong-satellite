@@ -10,9 +10,13 @@ const museos = defineCollection({
     descripcion: z.string(),
     horario: z.string(),
     rating: z.number(),
+    resenas: z.number().optional(),
     lat: z.number(),
     lng: z.number(),
     foto: z.string().optional(),
+    direccion: z.string().optional(),
+    entrada: z.string().optional(),
+    fuente: z.url().optional(),
   }),
 });
 

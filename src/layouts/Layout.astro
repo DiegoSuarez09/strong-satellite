@@ -1,13 +1,109 @@
-<html lang="en">
+---
+import { ruta } from '../lib/rutas';
+
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const {
+	title,
+	description = 'Guía turística de Concepción del Yaguareté Corá, Corrientes: museos, gastronomía y alojamientos en un mapa interactivo.',
+} = Astro.props;
+---
+
+<html lang="es">
 	<head>
 		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href={ruta('/favicon.svg')} />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
+		<meta name="description" content={description} />
+		<title>{title} · Turismo Concepción</title>
 	</head>
 	<body>
-		<slot />
+		<header class="site-header">
+			<a class="brand" href={ruta('/')}>Concepción del Yaguareté Corá</a>
+			<nav>
+				<a href={ruta('/')}>Inicio</a>
+				<a href={ruta('/museos')}>Museos</a>
+			</nav>
+		</header>
+
+		<main>
+			<slot />
+		</main>
+
+		<footer class="site-footer">
+			<p>Guía turística comunitaria de Concepción del Yaguareté Corá, Corrientes.</p>
+		</footer>
 	</body>
 </html>
+
+<style is:global>
+	:root {
+		--verde: #1e6b52;
+		--verde-oscuro: #134736;
+		--arena: #f4efe4;
+		--tierra: #8a5a2b;
+		--texto: #2a2a26;
+		--gris: #6b6b63;
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+
+	body {
+		margin: 0;
+		background: var(--arena);
+		color: var(--texto);
+		font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+		line-height: 1.5;
+	}
+
+	main {
+		max-width: 960px;
+		margin: 0 auto;
+		padding: 1.5rem 1rem 3rem;
+	}
+
+	a {
+		color: var(--verde);
+	}
+
+	.site-header {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 1rem;
+		background: var(--verde-oscuro);
+	}
+
+	.site-header .brand {
+		color: white;
+		font-weight: 700;
+		text-decoration: none;
+	}
+
+	.site-header nav a {
+		color: white;
+		text-decoration: none;
+		margin-left: 1.25rem;
+		opacity: 0.9;
+	}
+
+	.site-header nav a:hover {
+		opacity: 1;
+		text-decoration: underline;
+	}
+
+	.site-footer {
+		text-align: center;
+		padding: 1.5rem 1rem;
+		color: var(--gris);
+		font-size: 0.9rem;
+	}
+</style>

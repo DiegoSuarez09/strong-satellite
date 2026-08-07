@@ -342,6 +342,24 @@ horarios de forma clara y considerar un aviso general para los visitantes.
   probar el sitio tal como queda publicado (con el `base` de GitHub Pages
   incluido), antes de subirlo.
 
+### Subir cambios y desplegar (2026-08-07)
+
+No hay un paso de "deploy" manual aparte: al hacer `git push` a `master` se
+dispara solo el workflow de GitHub Actions (`.github/workflows/deploy.yml`),
+que compila el sitio y lo publica en
+`https://diegosuarez09.github.io/strong-satellite/`. El progreso se puede
+seguir en `https://github.com/DiegoSuarez09/strong-satellite/actions`
+(tarda 1-2 minutos).
+
+Comandos, en orden, cada vez que hay cambios para subir:
+
+```
+git status          # ver qué cambió
+git add -A           # preparar todo para el commit
+git commit -m "..."  # crear el commit con un mensaje que explique el porqué
+git push             # subir a GitHub y disparar el deploy automático
+```
+
 ---
 
 ## Próximos pasos

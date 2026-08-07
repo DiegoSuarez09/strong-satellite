@@ -3,6 +3,9 @@ import type { CollectionEntry } from 'astro:content';
 import { iconoCategoria } from '../lib/categorias';
 import { ruta } from '../lib/rutas';
 
+// CollectionEntry<'museos'> tipa `lugar` como una entrada real de la
+// colección "museos" (frontmatter validado por content.config.ts), en vez de
+// un objeto genérico — así el editor avisa si se usa un campo que no existe.
 interface Props {
 	lugar: CollectionEntry<'museos'>;
 }
@@ -11,17 +14,28 @@ const { lugar } = Astro.props;
 const { nombre, descripcion, categoria, horario, entrada, rating, resenas, foto } = lugar.data;
 ---
 
+<!-- Componente reusable: la ficha con foto + rating + horario que usan tanto
+	 la home (index.astro) como las páginas de categoría ([categoria].astro). -->
 <li class="tarjeta">
+	{/* lugar.id es el nombre del archivo .md (sin extensión), ej. "belgrano".
+		Las páginas de detalle siempre viven bajo /museos/<id>, sin importar la
+		categoría del lugar. */}
 	<a class="tarjeta-link" href={ruta(`/museos/${lugar.id}`)}>
 		<div class="foto-wrap">
 			{foto ? (
 				<img class="foto" src={foto} alt={nombre} loading="lazy" />
 			) : (
+				// Si no hay foto cargada, cae al ícono de la categoría en vez de
+				// dejar un hueco vacío.
 				<div class="icono" aria-hidden="true">{iconoCategoria(categoria)}</div>
 			)}
-			<span class="rating">
-				{rating} ★{resenas ? ` (${resenas})` : ''}
-			</span>
+			{/* Sin rating (ej. un punto de interés tipo comisaría), no se
+				muestra el sello — no tiene sentido "0 ★" ni inventar un número. */}
+			{rating && (
+				<span class="rating">
+					{rating} ★{resenas ? ` (${resenas})` : ''}
+				</span>
+			)}
 		</div>
 		<div class="cuerpo">
 			<h2>{nombre}</h2>

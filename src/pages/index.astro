@@ -5,13 +5,26 @@ import { CATEGORIAS } from '../lib/categorias';
 import TarjetaLugar from '../components/TarjetaLugar.astro';
 import 'leaflet/dist/leaflet.css';
 
+// Todo lo de este bloque corre EN EL SERVIDOR al generar la página (no en el
+// navegador del visitante) — es la parte "HTML estático" de Astro.
+
+// Trae TODOS los lugares de la colección, sin filtrar por categoría todavía.
 const lugares = await getCollection('museos');
 
+// Reagrupa ese array plano en un objeto por categoría, ej:
+// { museo: [belgrano, del-campo, ...], gastronomia: [...], ... }
+// Recorre CATEGORIAS (no un valor fijo) para que, si se agrega o saca una
+// categoría en categorias.ts, esta home se ajuste sola sin tocar este archivo.
 const porCategoria = Object.fromEntries(
 	CATEGORIAS.map(({ id }) => [id, lugares.filter((lugar) => lugar.data.categoria === id)])
 );
 
-// Evita cerrar el <script> de abajo si algún texto trajera "</".
+// El script del navegador (más abajo) necesita estos mismos datos para armar
+// los marcadores del mapa, pero el server y el navegador no comparten
+// memoria: hay que "congelar" el objeto a texto JSON para poder mandarlo
+// dentro del HTML, y del otro lado volver a leerlo con JSON.parse.
+// El .replace evita que un "</" dentro de algún texto corte el <script> de
+// abajo por accidente.
 const datosLugares = JSON.stringify(porCategoria).replace(/</g, '\\u003c');
 ---
 
@@ -23,6 +36,12 @@ const datosLugares = JSON.stringify(porCategoria).replace(/</g, '\\u003c');
 	</p>
 
 	<section class="explorador">
+		{/* Un botón por categoría, generado desde CATEGORIAS. data-categoria
+			es el "gancho" que usa el script de abajo para saber a qué
+			categoría corresponde cada botón al hacer click.
+			aria-pressed marca cuál filtro está activo (afecta también el CSS
+			del botón resaltado); arranca en 'true' solo para el primero
+			(i === 0), que es el filtro que se ve al cargar la página. */}
 		<aside class="filtros">
 			{CATEGORIAS.map((cat, i) => (
 				<button
@@ -38,8 +57,14 @@ const datosLugares = JSON.stringify(porCategoria).replace(/</g, '\\u003c');
 		</aside>
 
 		<div class="panel">
+			{/* El mapa Leaflet se monta acá dentro por el script de abajo
+				(L.map('mapa')); este <div> arranca vacío. */}
 			<div id="mapa"></div>
 
+			{/* Se generan las listas de las 4 categorías de una sola vez (no
+				solo la activa); las que no corresponden al filtro activo
+				quedan con `hidden`, sin recargar nada al cambiar de botón —
+				eso también lo maneja el script de abajo. */}
 			<div class="listas">
 				{CATEGORIAS.map((cat, i) => (
 					<ul class="lugares" data-lista={cat.id} hidden={i !== 0}>
@@ -55,10 +80,18 @@ const datosLugares = JSON.stringify(porCategoria).replace(/</g, '\\u003c');
 	</section>
 </Layout>
 
+{/* No es JavaScript ejecutable: es solo un contenedor de datos. Acá vuelca
+	el server el "porCategoria" ya convertido a texto JSON, para que el
+	script de abajo (que sí corre en el navegador) pueda leerlo. */}
 <script type="application/json" id="datos-lugares" set:html={datosLugares} />
 
+{/* Esta sí es la única isla interactiva del sitio: JavaScript real que
+	corre en el navegador de cada visitante, para armar y manejar el mapa. */}
 <script>
 	import L from 'leaflet';
+	// ?url le pide a Vite que devuelva la ruta final del archivo como texto
+	// plano. Sin el sufijo, Astro importa la imagen como un objeto con
+	// metadata (ancho/alto/etc.) en vez de un string usable como URL.
 	import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png?url';
 	import iconUrl from 'leaflet/dist/images/marker-icon.png?url';
 	import shadowUrl from 'leaflet/dist/images/marker-shadow.png?url';
@@ -69,30 +102,45 @@ const datosLugares = JSON.stringify(porCategoria).replace(/</g, '\\u003c');
 	delete L.Icon.Default.prototype._getIconUrl;
 	L.Icon.Default.mergeOptions({ iconRetinaUrl, iconUrl, shadowUrl });
 
+	// "Descongela" el JSON que dejó el server en el <script type="application/json">
+	// de arriba, de vuelta a un objeto JS normal: { museo: [...], gastronomia: [...], ... }
 	const datosPorCategoria = JSON.parse(
 		document.getElementById('datos-lugares').textContent
 	);
 
+	// Arma el HTML que se ve al hacer click en un marcador del mapa.
 	function popupLugar(lugar) {
 		const { nombre, rating, resenas, horario } = lugar.data;
-		const reseñasTexto = resenas ? ` (${resenas})` : '';
+		// Sin rating (ej. un punto de interés tipo comisaría), esa línea del
+		// popup directamente no se arma.
+		const lineaRating = rating
+			? `<span>${rating} ★${resenas ? ` (${resenas})` : ''}</span>`
+			: '';
 		return `
 			<div class="popup-lugar">
 				<strong>${nombre}</strong>
-				<span>${rating} ★${reseñasTexto}</span>
+				${lineaRating}
 				<span>🕐 ${horario}</span>
 			</div>
 		`;
 	}
 
+	// Crea el mapa dentro del <div id="mapa">, centrado en el pueblo, con
+	// zoom inicial 16 (bastante cercano, pensado para un pueblo chico).
 	const mapa = L.map('mapa').setView([-28.3916, -57.8845], 16);
 
+	// Capa base de mosaicos (las imágenes del mapa en sí), servida gratis por
+	// OpenStreetMap. La atribución es obligatoria por su licencia.
 	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 		attribution:
 			'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 		maxZoom: 19,
 	}).addTo(mapa);
 
+	// Por cada categoría, arma un "layerGroup": un grupo de marcadores de
+	// Leaflet que se puede agregar o sacar del mapa de una sola vez. Así,
+	// cambiar de filtro es simplemente sacar el grupo viejo y poner el nuevo,
+	// sin recrear marcadores cada vez.
 	const capasPorCategoria = Object.fromEntries(
 		Object.entries(datosPorCategoria).map(([categoria, lugares]) => [
 			categoria,
@@ -104,12 +152,18 @@ const datosLugares = JSON.stringify(porCategoria).replace(/</g, '\\u003c');
 		])
 	);
 
+	// Al cargar la página se muestra la capa de "museo" (coincide con el
+	// primer botón, que arranca con aria-pressed="true" en el HTML de arriba).
 	let categoriaActiva = 'museo';
 	capasPorCategoria[categoriaActiva]?.addTo(mapa);
 
 	const botones = document.querySelectorAll('.filtro');
 	const listas = document.querySelectorAll('.lugares');
 
+	// Un solo listener de click reusado para los 4 botones (en vez de uno
+	// distinto por botón): lee la categoría desde data-categoria y actualiza
+	// tres cosas en sincro — la capa visible del mapa, qué botón se ve
+	// "presionado", y qué lista de fichas queda visible.
 	botones.forEach((boton) => {
 		boton.addEventListener('click', () => {
 			const categoria = boton.dataset.categoria;
@@ -191,6 +245,14 @@ const datosLugares = JSON.stringify(porCategoria).replace(/</g, '\\u003c');
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 		gap: 1.25rem;
+	}
+
+	/* Sin esto, el "display: grid" de arriba le gana al display:none que el
+	   navegador aplica por defecto a [hidden] (misma especificidad, pero el
+	   CSS del autor pisa al del navegador) — y las listas ocultas se ven
+	   igual, apiladas con la activa. */
+	.lugares[hidden] {
+		display: none;
 	}
 
 	.vacio {

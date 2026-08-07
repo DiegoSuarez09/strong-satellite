@@ -1,0 +1,60 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { CATEGORIAS, etiquetaCategoria } from '../lib/categorias';
+import TarjetaLugar from '../components/TarjetaLugar.astro';
+
+// getStaticPaths le dice a Astro qué páginas generar a partir de este único
+// archivo. Devuelve un objeto por cada categoría de categorias.ts, con
+// `params.categoria` fijando el valor de "[categoria]" en la URL.
+// Resultado: /museo, /gastronomia, /alojamiento, /punto_interes — sin tener
+// que escribir un archivo .astro por categoría a mano.
+export async function getStaticPaths() {
+	return CATEGORIAS.map((cat) => ({
+		params: { categoria: cat.id },
+	}));
+}
+
+// Astro.params trae el valor de "[categoria]" para la página que se está
+// generando en este momento (una de las 4 llamadas de arriba).
+const { categoria } = Astro.params;
+
+// La colección "museos" guarda TODOS los lugares (ver nota en
+// content.config.ts); acá se filtran solo los que coinciden con la
+// categoría de esta página en particular.
+const todos = await getCollection('museos');
+const lugares = todos.filter((lugar) => lugar.data.categoria === categoria);
+
+const etiqueta = etiquetaCategoria(categoria!);
+---
+
+<Layout
+	title={etiqueta}
+	description={`${etiqueta} de Concepción del Yaguareté Corá, Corrientes.`}
+>
+	<h1>{etiqueta}</h1>
+	<p>{lugares.length} lugares para visitar en el pueblo.</p>
+
+	<ul class="lugares">
+		{lugares.length === 0 ? (
+			<li class="vacio">Todavía no hay lugares cargados en esta categoría.</li>
+		) : (
+			lugares.map((lugar) => <TarjetaLugar lugar={lugar} />)
+		)}
+	</ul>
+</Layout>
+
+<style>
+	.lugares {
+		list-style: none;
+		margin: 1.5rem 0 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+		gap: 1.25rem;
+	}
+
+	.vacio {
+		color: var(--gris);
+	}
+</style>

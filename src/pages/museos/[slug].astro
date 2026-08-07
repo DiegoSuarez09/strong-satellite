@@ -4,6 +4,10 @@ import { getCollection } from 'astro:content';
 import { etiquetaCategoria, iconoCategoria } from '../../lib/categorias';
 import { ruta } from '../../lib/rutas';
 
+// Genera una página de detalle por cada lugar de la colección, con URL
+// /museos/<id-del-archivo> (ej: /museos/belgrano, a partir de belgrano.md).
+// `props: { lugar }` le pasa la entrada completa a la página, así abajo no
+// hace falta volver a buscarla.
 export async function getStaticPaths() {
 	const lugares = await getCollection('museos');
 	return lugares.map((lugar) => ({
@@ -28,11 +32,24 @@ const {
 	fuente,
 } = lugar.data;
 
-const urlGoogleMaps = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+// Arma un link de búsqueda de Google Maps. Es un link normal (no la API JS
+// de pago) que abre la app de mapas del visitante.
+// Si hay dirección cargada, buscamos "nombre, dirección": ese texto es
+// específico de sobra para que Google enganche con la ficha real del
+// negocio (fotos, reseñas), sin importar la coordenada.
+// Si NO hay dirección, buscar solo por nombre es riesgoso: nombres como
+// "Gauchito Gil" se repiten en otros pueblos y Google puede llevar a un
+// lugar equivocado. En ese caso volvemos a lat,lng puro — menos vistoso
+// (pin sin ficha), pero garantiza caer en el punto exacto.
+const consultaMapa = direccion ? `${nombre}, ${direccion}` : `${lat},${lng}`;
+const urlGoogleMaps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(consultaMapa)}`;
 ---
 
 <Layout title={nombre} description={descripcion}>
-	<a class="volver" href={ruta('/museos')}>← Volver a Museos</a>
+	{/* Vuelve a la página de la categoría propia de este lugar (ej: /museo,
+		/gastronomia), no a una ruta fija — así funciona sin importar de qué
+		categoría sea el lugar que se está viendo. */}
+	<a class="volver" href={ruta(`/${categoria}`)}>← Volver a {etiquetaCategoria(categoria)}</a>
 
 	<article class="detalle">
 		{foto ? (
@@ -64,8 +81,12 @@ const urlGoogleMaps = `https://www.google.com/maps/search/?api=1&query=${lat},${
 						<dd>{entrada}</dd>
 					</>
 				)}
-				<dt>Rating</dt>
-				<dd>{rating} ★{resenas ? ` (${resenas} reseñas)` : ''}</dd>
+				{rating && (
+					<>
+						<dt>Rating</dt>
+						<dd>{rating} ★{resenas ? ` (${resenas} reseñas)` : ''}</dd>
+					</>
+				)}
 			</dl>
 
 			<a class="boton-mapa" href={urlGoogleMaps} target="_blank" rel="noopener noreferrer">

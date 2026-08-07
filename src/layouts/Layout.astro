@@ -1,5 +1,6 @@
 ---
 import { ruta } from '../lib/rutas';
+import { CATEGORIAS } from '../lib/categorias';
 
 interface Props {
 	title: string;
@@ -26,11 +27,18 @@ const {
 			<a class="brand" href={ruta('/')}>Concepción del Yaguareté Corá</a>
 			<nav>
 				<a href={ruta('/')}>Inicio</a>
-				<a href={ruta('/museos')}>Museos</a>
+				{/* Un link por cada categoría de categorias.ts, apuntando a su
+					página /[categoria] (ver src/pages/[categoria].astro). Si se
+					agrega o saca una categoría ahí, el menú se actualiza solo. */}
+				{CATEGORIAS.map((cat) => <a href={ruta(`/${cat.id}`)}>{cat.label}</a>)}
 			</nav>
 		</header>
 
 		<main>
+			{/* <slot /> es el hueco donde cada página inyecta su propio
+				contenido. index.astro, [categoria].astro y [slug].astro
+				envuelven todo su HTML en <Layout>...</Layout>; lo de adentro
+				termina cayendo acá. */}
 			<slot />
 		</main>
 
@@ -40,6 +48,11 @@ const {
 	</body>
 </html>
 
+{/* is:global: estas reglas NO llevan el hash de alcance por componente que
+	Astro le pone a los <style> normales. Van acá porque tienen que aplicar a
+	TODO el sitio (variables de color, reset, tipografía base), no solo a
+	este archivo. Ver TarjetaLugar/index.astro para estilos con alcance
+	normal, propios de un solo componente. */}
 <style is:global>
 	:root {
 		--verde: #1e6b52;

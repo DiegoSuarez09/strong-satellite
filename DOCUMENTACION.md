@@ -78,9 +78,17 @@ la página (leer datos, importar). Abajo va el HTML, que puede usar esas variabl
 
 ## Categorías
 
-Tres desde el inicio: **museo**, **gastronomía**, **alojamiento**.
-De arranque se cargan los 3 museos reales; gastronomía y alojamientos se suman
-después con el mismo formato.
+Cuatro: **museo**, **gastronomía**, **alojamiento** y **punto_interes**
+(agregada el 2026-08-07 a pedido del dueño, para plazas/monumentos/miradores
+que no encajan en las otras tres). De arranque se cargaron los 3 museos
+reales; gastronomía, alojamientos y puntos de interés quedan pendientes de
+cargar con datos investigados (mismo criterio que los museos).
+
+Agregar una categoría implica tocar **dos archivos sincronizados a mano**:
+el enum `categoria` en `content.config.ts` (que valida los `.md`) y el array
+`CATEGORIAS` en `src/lib/categorias.ts` (que controla botones de filtro,
+íconos y qué página `/[categoria]` se genera). No hay validación cruzada
+entre ambos.
 
 ### Los 3 museos (datos base)
 
@@ -90,6 +98,81 @@ después con el mismo formato.
   Rating 4.5.
 - **Museo de La Pilarcita** — +400 muñecas, entrada libre, lunes cerrado.
   Rating 4.4.
+
+### Listado completo de lugares por cargar
+
+Relevamiento que trajo el dueño el 2026-08-07 (46 lugares en total). Se tacha
+cada uno a medida que su `.md` queda cargado en `src/content/museos/`.
+
+**Museos y centro de interpretación:**
+- [x] Museo Histórico General Manuel Belgrano (`belgrano.md`)
+- [x] Museo La Pilarcita (`la-pilarcita.md`)
+- [x] Museo de Campo (`del-campo.md`)
+- [x] Museo de la Policía de Corrientes y Centro de Interpretación de Poblados
+      Históricos (`museo-policia.md`) — sin foto ni rating verificados.
+- [x] Centro de Interpretación de Iberá (`centro-interpretacion-ibera.md`) —
+      sin horario oficial confirmado ni foto/rating; queda con nota para
+      consultar en la Oficina de Informes Turísticos.
+
+**Puntos de interés** (categoría `punto_interes`, agregada 2026-08-07) — 19/20
+cargados vía el método de Google Maps:
+- [x] Predio Terminal de Ómnibus (`terminal-omnibus.md`)
+- [x] Oficina de Informes Turísticos (`oficina-informes-turisticos.md`)
+- [x] Hospital Inmaculada Concepción del Yaguareté Corá (`hospital-inmaculada-concepcion.md`) — sin foto (Google Maps no tiene ninguna cargada).
+- [x] Policía / Comisaría de Concepción del Yaguareté Corá (`comisaria-concepcion.md`) — coordenadas aproximadas (no se pudo abrir su ficha completa en Maps, se estimaron por posición relativa a la Municipalidad).
+- [ ] **Policía Rural de Concepción del Yaguareté Corá** — no se encontró una ficha propia en Google Maps (el único "Destacamento Rural" que aparece está a 30 km, en otra localidad). Pendiente de datos manuales o de descartar.
+- [x] Bomberos Voluntarios de Concepción del Yaguareté Corá (`bomberos-voluntarios.md`) — **atención:** Google Maps lo marca como "cerrado permanentemente"; confirmar si sigue en funcionamiento antes de dar el dato por bueno.
+- [x] Banco de Corrientes y Cajero Link (`banco-de-corrientes.md`)
+- [x] Municipalidad de Concepción del Yaguareté Corá (`municipalidad.md`)
+- [x] Sucursal Correo Argentino (`correo-argentino.md`)
+- [x] Farmacia Red Farmacentro (`farmacia-red-farmacentro.md`)
+- [x] Farmacia Concepción (`farmacia-concepcion.md`)
+- [x] Parroquia Inmaculada Concepción (`parroquia-inmaculada-concepcion.md`)
+- [x] Plazoleta Manuel Ramírez (`plazoleta-manuel-ramirez.md`) — coordenadas aproximadas.
+- [x] Paseo Sosa Osvaldo Cordero (`paseo-osvaldo-sosa.md`)
+- [x] Plaza San Martín (`plaza-san-martin.md`)
+- [x] Plaza Tambor de Tacuarí (`plaza-tambor-de-tacuari.md`)
+- [x] Club Social y Deportivo Concepción (`club-social-deportivo.md`)
+- [x] Cancha de Fútbol Municipal (`cancha-futbol-municipal.md`)
+- [x] Predio Camping Municipal (`camping-municipal.md`)
+- [x] Predio del Peón Rural (`predio-peon-rural.md`) — encontrado de casualidad buscando "Policía Rural"; muy bien documentado (77 reseñas), gratuito, junto a los Esteros del Iberá.
+
+**Gastronomía** — datos sacados de Google Maps (rating, dirección, horario,
+coordenadas y foto de portada), ver método abajo:
+- [x] Comedor los Tres Hermanos (`comedor-tres-hermanos.md`)
+- [x] Hamburguesería Williams (`hamburgueseria-williams.md`)
+- [x] INGA Café y Helados (`inga-cafe-helados.md`)
+- [x] Yacaru Porã de Reina Sandoval (`yacaru-pora.md`) — historia propia,
+      fuente LA NACION en vez de Google Maps.
+- [x] Restaurante Estilo (`restaurante-estilo.md`)
+- [x] Pizzería el Gauchito (`pizzeria-el-gauchito.md`)
+- [x] Alfajores AVA (`alfajores-ava.md`)
+- [x] Cassiabreak (`casia-break.md`) — sin foto ni rating (el negocio no
+      tiene ninguno cargado en Google Maps todavía).
+
+**Hospedajes, cabañas y posadas** — 11/13 cargados vía Google Maps:
+- [x] La Cabaña de Letty (`cabana-letty.md`)
+- [x] Cabañas Don Oriol (`cabanas-don-oriol.md`)
+- [x] La Alondra'i (`la-alondra-i.md`)
+- [x] Pousada Nido de Pájaros (`posada-nido-pajaros.md`)
+- [x] Cabañas Puerto Iberá (`cabanas-puerto-ibera.md`)
+- [x] Cabañas Iberá (`cabanas-ibera.md`)
+- [x] Hospedaje Ñangapiri Tujá (`nangapiri-tuja.md`)
+- [x] Hospedaje Sueños Dulces (`suenos-dulces.md`)
+- [x] Hospedaje Arami (`hospedaje-aramy.md`)
+- [x] Hospedaje Gauchito Gil (de Roberto Pérez) (`hospedaje-gauchito-gil.md`)
+- [ ] **Hospedaje Nica** — no se encontró ficha propia en Google Maps.
+- [ ] **Hospedaje el Jacarandá** — no se encontró ficha propia en Google Maps
+      (aparece un "El Jacaranda Alojamiento Diario" sin reseñas ni dirección
+      clara; no se pudo confirmar que sea el mismo lugar).
+- [x] Hospedaje Teresita (de Chino López) (`hospedaje-teresita.md`)
+
+**Pendiente de decidir antes de cargar puntos de interés** (ver conversación
+2026-08-07): el schema exige `rating` como campo obligatorio (pensado para
+atractivos turísticos), pero varios puntos de interés son infraestructura de
+servicio (hospital, comisaría, bomberos, banco, correo, municipalidad) sin
+rating real de Google en muchos casos. Evaluar si `rating`/`resenas` pasan a
+opcionales, o si esos casos puntuales llevan un valor "sin calificar".
 
 ---
 
@@ -175,6 +258,77 @@ horarios de forma clara y considerar un aviso general para los visitantes.
      Campo" (que no tenía horario oficial) donde se usó el dato aproximado de
      Google con una aclaración de que no está confirmado. Convendría llamar al
      Instituto de Cultura (0379 423-0640 / 431-8800) para confirmar los tres.
+   - **Campo `resenas`** (opcional, cantidad de reseñas de Google) sumado al
+     schema para mostrar "4.7 ★ (47)" en tarjetas, detalle y popup del mapa.
+10. **Home con mapa Leaflet interactivo** (`src/pages/index.astro`): botones de
+    categoría a la izquierda, mapa arriba, fichas debajo. Los botones cambian
+    tanto la capa de marcadores visible en el mapa como la lista de fichas
+    (todo con una capa fina de JS vainilla, sin framework de UI).
+    - **Dos bugs de Leaflet + Vite/Astro resueltos:** (1) Astro convierte las
+      imágenes importadas en objetos con metadata en vez de strings de URL —
+      hay que importarlas con el sufijo `?url` para que Vite devuelva el string
+      plano. (2) `L.Icon.Default` de Leaflet siempre antepone una ruta
+      auto-detectada a la URL del ícono, incluso si ya le pasás una completa —
+      hay que hacer `delete L.Icon.Default.prototype._getIconUrl` antes de
+      fijar las URLs con `mergeOptions`. Sin estos dos ajustes los marcadores
+      se ven como ícono roto.
+    - El popup de cada marcador (al hacer click en el mapa) muestra nombre,
+      rating con reseñas y horario, no solo el nombre.
+11. **Componente `TarjetaLugar.astro`** (`src/components/`): la tarjeta de
+    lugar (foto con rating superpuesto, meta con íconos de horario/entrada)
+    estaba duplicada en `/museos` y en la home; se extrajo a un componente
+    único que ambas páginas importan.
+12. **Deploy a GitHub Pages funcionando**, publicado en
+    `https://diegosuarez09.github.io/strong-satellite/`. El primer intento
+    del workflow falló porque `withastro/action@v3` usa Node 20 por default y
+    Astro pide Node ≥22.12 — se resolvió agregando `node-version: 22` al paso
+    del Action.
+13. **Página dinámica por categoría** (`src/pages/[categoria].astro`),
+    reemplaza a `museos.astro`. Con `getStaticPaths()` genera una URL por
+    cada entrada de `CATEGORIAS` (`/museo`, `/gastronomia`, `/alojamiento`,
+    `/punto_interes`) sin escribir un archivo por categoría a mano — mismo
+    patrón que ya usaba `[slug].astro` para el detalle de cada lugar.
+    - **Bug de raíz que motivó el cambio:** `museos.astro` hacía
+      `getCollection('museos')` y listaba todo sin filtrar por `categoria`
+      ('museos' ahí era el nombre de la colección/carpeta de datos, no un
+      filtro). Con una sola categoría cargada no se notaba, pero en cuanto se
+      sumaran gastronomía/alojamientos iba a mezclar todo bajo el título
+      "Museos". La página nueva filtra explícitamente por categoría.
+    - El nav de `Layout.astro` y el link "← Volver" de `[slug].astro` (antes
+      apuntaban fijo a `/museos`) ahora se generan/resuelven a partir de
+      `CATEGORIAS` y de la categoría propia del lugar, respectivamente.
+    - Código comentado en todo el proyecto a pedido del dueño (2026-08-07),
+      para que sirva de referencia además de funcionar.
+14. **Método de carga de datos vía Google Maps** (descubierto 2026-08-07,
+    con los 8 de gastronomía): en vez de que el dueño busque coordenadas a
+    mano, la IA usa control de navegador (Chrome) para buscar cada lugar en
+    Google Maps y sacar de la ficha: rating, reseñas, dirección, horario,
+    teléfono, coordenadas exactas (del URL del pin) y hasta la URL de la
+    foto de portada (mismo criterio que las fotos de museos: se enlaza en
+    vivo a `googleusercontent.com`, no se descarga). Mucho más rápido y
+    preciso que buscar a mano o que la IA adivine por búsqueda web. `fuente`
+    en estos casos cita el link de búsqueda de Google Maps usado (no hay
+    fuente "oficial" para negocios chicos). Método reusado para cargar los
+    43 lugares de las 4 categorías (recap punto 15).
+15. **Relevamiento completo cargado** (2026-08-07): 43 de 46 lugares del
+    listado que trajo el dueño (ver checklist en "Listado completo de
+    lugares por cargar"). Quedaron 3 sin ficha propia en Google Maps
+    (Policía Rural, Hospedaje Nica, Hospedaje el Jacarandá).
+    - **Bug encontrado y corregido en el botón "Abrir en Google Maps"**
+      (`[slug].astro`): armaba el link solo con `query=lat,lng`, lo que abre
+      un pin genérico sin ficha del negocio. Se cambió a `nombre + dirección`
+      cuando hay dirección cargada (Google engancha bien con la ficha real);
+      si no hay dirección, se usa el fallback anterior (`lat,lng` puro) para
+      no arriesgar que el texto del nombre lleve a otro lugar con el mismo
+      nombre en otro pueblo (pasó con "Hospedaje Gauchito Gil").
+    - **Bug de CSS encontrado y corregido en la home** (`index.astro`): la
+      regla `.lugares { display: grid }` tenía la misma especificidad que el
+      `display: none` que el navegador aplica por defecto al atributo
+      `hidden`, y el CSS del autor le gana al del navegador en un empate —
+      entonces las 4 listas de fichas se veían todas apiladas sin importar
+      el botón de categoría activo (no se notaba con pocos lugares, saltó a
+      la vista con 43 cargados). Se agregó `.lugares[hidden] { display: none; }`
+      explícito para resolverlo.
 
 ### Comandos aprendidos
 
@@ -203,8 +357,15 @@ horarios de forma clara y considerar un aviso general para los visitantes.
       colección `museos`, con filtro por categoría (botones a la izquierda).
 - [x] Página de detalle por lugar (`/museos/[slug]`, con `getStaticPaths`),
       con botón a Google Maps.
-- [ ] Páginas propias por categoría (hoy el filtro por categoría vive como
-      botones en la home, no como URLs separadas tipo `/gastronomia`).
+- [x] **Cargar gastronomía, alojamientos y puntos de interés** (pedido del
+      dueño el 2026-08-05). 46 lugares relevados, 43 cargados (ver checklist
+      completo en "Listado completo de lugares por cargar" más arriba); 3
+      pendientes por no tener ficha propia en Google Maps (Policía Rural,
+      Hospedaje Nica, Hospedaje el Jacarandá). Sigue pendiente renombrar la
+      carpeta `src/content/museos/` a algo más genérico, ya tiene más que
+      museos.
+- [x] Páginas propias por categoría (`/[categoria]`, con `getStaticPaths`,
+      reemplaza a la vieja `museos.astro`).
 - [ ] SEO (meta tags, Open Graph, sitemap, schema.org).
 - [ ] PDF descargable.
 - [x] Configurar `astro.config.mjs` para GitHub Pages (`site` y `base`) y el
